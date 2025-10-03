@@ -1,0 +1,25 @@
+⛬  Yes. For Google Colab (T4), set Runtime → Change runtime type → GPU, then run these exactly.
+
+   SANITY (quick train + eval + export + batch infer):
+
+     !nvidia-smi
+     %cd /content
+     !git clone <YOUR_BTP_2_GIT_URL> BTP_2
+     %cd /content/BTP_2
+     !pip -q install ultralytics onnx onnxruntime opencv-python numpy PyYAML matplotlib tqdm pandas scikit-learn pycocotools
+     DATA="fetus-yolo/data_yolo/fetal_fp23.yaml"
+     !python scripts/train_cli.py --mode quick --data $DATA --img 896 --epochs 10 --device 0 --yes
+     !python scripts/eval_cli.py --weights runs/detect/proposed_full/weights/best.pt --data $DATA --img 896 --conf 0.25 --device 0 --save-dir results/eval_quick --coco
+     !python scripts/export_cli.py --weights runs/detect/proposed_full/weights/best.pt --img 896 --formats onnx --half --out exports
+     !python scripts/infer_cli.py --onnx exports/onnx_fp16/weights/best.onnx --source fetus-yolo/data_yolo/images/val --mode adaptive --imgsz 896 --tile 640 --overlap 0.25
+     --conf 0.25 --device 0
+
+   CONFERENCE (full train + eval + export + batch infer):
+
+     %cd /content/BTP_2
+     DATA="fetus-yolo/data_yolo/fetal_fp23.yaml"
+     !python scripts/train_cli.py --mode proposed --data $DATA --img 1024 --epochs 200 --device 0 --yes
+     !python scripts/eval_cli.py --weights runs/detect/proposed_full/weights/best.pt --data $DATA --img 1024 --conf 0.25 --device 0 --save-dir results/eval_conference --coco
+     !python scripts/export_cli.py --weights runs/detect/proposed_full/weights/best.pt --img 1024 --formats onnx --half --out exports
+     !python scripts/infer_cli.py --onnx exports/onnx_fp16/weights/best.onnx --source fetus-yolo/data_yolo/images/val --mode adaptive --imgsz 1024 --tile 640 --overlap 0.25
+     --conf 0.25 --device 0

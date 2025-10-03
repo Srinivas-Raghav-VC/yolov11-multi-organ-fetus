@@ -1,0 +1,36 @@
+# Ultrasound + small-object emphasis (YOLO-compatible keys)
+
+# Geometric
+degrees: 3.0
+translate: 0.08
+scale: 0.50
+shear: 2.0
+perspective: 0.000
+flipud: 0.0
+fliplr: 0.5
+
+# Intensity
+hsv_h: 0.000
+hsv_s: 0.040
+hsv_v: 0.080
+
+# Composition
+mosaic: 0.80
+mixup: 0.20
+cutmix: 0.00
+copy_paste: 0.00
+copy_paste_mode: flip
+auto_augment: randaugment
+erasing: 0.20
+
+# Loss/optimization
+box: 7.5
+cls: 0.5
+dfl: 1.5
+lr0: 0.01
+lrf: 0.01
+momentum: 0.937
+weight_decay: 0.0005
+warmup_epochs: 3.0
+warmup_momentum: 0.8
+warmup_bias_lr: 0.1
