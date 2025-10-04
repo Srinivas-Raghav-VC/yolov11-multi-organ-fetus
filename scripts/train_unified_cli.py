@@ -151,25 +151,40 @@ def _extract_zip(zip_path: Path, out_dir: Path) -> Path:
     return out_dir
 
 
-def _find_yolo_root(search_dir: Path) -> Path | None:
+def _find_yolo_root(search_dir: Path) -> dict | None:
     candidates = []
     for root, dirs, files in os.walk(search_dir):
         p = Path(root)
         img_train = p / 'images' / 'train'
         lbl_train = p / 'labels' / 'train'
         if img_train.exists() and lbl_train.exists():
-            candidates.append(p)
-    return min(candidates, key=lambda x: len(str(x))) if candidates else None
+            # detect val vs valid and optional test
+            val_dir = p / 'images' / 'val'
+            valid_dir = p / 'images' / 'valid'
+            test_dir = p / 'images' / 'test'
+            entry = {
+                'root': p,
+                'has_val': val_dir.exists(),
+                'has_valid': valid_dir.exists(),
+                'has_test': test_dir.exists(),
+            }
+            candidates.append(entry)
+    if not candidates:
+        return None
+    # choose shortest path
+    return min(candidates, key=lambda x: len(str(x['root'])))
 
 
-def _write_yolo_yaml(root: Path, out_yaml: Path, names: List[str]):
+def _write_yolo_yaml(root: Path, out_yaml: Path, names: List[str], *, has_valid: bool, has_test: bool):
+    val_path = 'images/valid' if has_valid else 'images/val'
     data = {
         'path': root.as_posix(),
         'train': 'images/train',
-        'val': 'images/val',
-        'test': 'images/test',
+        'val': val_path,
         'names': names,
     }
+    if has_test:
+        data['test'] = 'images/test'
     out_yaml.parent.mkdir(parents=True, exist_ok=True)
     out_yaml.write_text(yaml.safe_dump(data, sort_keys=False), encoding='utf-8')
 
@@ -321,11 +336,11 @@ def main():
             zip_path = (REPO_ROOT / 'datasets' / 'auto' / 'dataset.zip').resolve()
             _gdrive_download(url, zip_path)
             extracted = _extract_zip(zip_path, zip_path.parent / 'extracted')
-            yolo_root = _find_yolo_root(extracted)
-            if not yolo_root:
+            found = _find_yolo_root(extracted)
+            if not found:
                 raise SystemExit("YOLO dataset structure not found after extraction (expected images/ and labels/).")
             auto_yaml = (REPO_ROOT / 'datasets' / 'auto' / 'auto.yaml').resolve()
-            _write_yolo_yaml(yolo_root, auto_yaml, names=["abdomen", "head", "arm", "legs"])
+            _write_yolo_yaml(found['root'], auto_yaml, names=["abdomen", "head", "arm", "legs"], has_valid=found['has_valid'], has_test=found['has_test'])
             data_yaml = auto_yaml
 
     try:
