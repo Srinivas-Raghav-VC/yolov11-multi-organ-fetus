@@ -20,15 +20,26 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
-from fetus_yolo.data.dataset_utils import (
-    EXPECTED_CLASS_NAMES,
-    DatasetInfo,
-    DatasetValidationError,
-    ensure_dataset_ready,
-    gather_files,
-    img_to_label_path,
-    check_label_file,
-)
+try:
+    from fetus_yolo.data.dataset_utils import (
+        EXPECTED_CLASS_NAMES,
+        DatasetInfo,
+        DatasetValidationError,
+        ensure_dataset_ready,
+        gather_files,
+        img_to_label_path,
+        check_label_file,
+    )
+except Exception:
+    from data.dataset_utils import (
+        EXPECTED_CLASS_NAMES,
+        DatasetInfo,
+        DatasetValidationError,
+        ensure_dataset_ready,
+        gather_files,
+        img_to_label_path,
+        check_label_file,
+    )
 
 
 def _yolo_to_coco_bbox(x: float, y: float, w: float, h: float, iw: int, ih: int) -> Tuple[float, float, float, float]:
